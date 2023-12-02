@@ -4,11 +4,11 @@
 using namespace Graph_lib;
 
 Stones::Stones(Point xy)
-    : Window{xy, Chessboard::size, Chessboard::size, "go_game"},
+    : Window{xy, Board::size, Board::size, "go_game"},
       board{Point{0, 0}, cb_clicked}
 {
-  size_range(Chessboard::size, Chessboard::size, Chessboard::size,
-             Chessboard::size);  // fixed window size
+  size_range(Board::size, Board::size, Board::size,
+             Board::size);  // fixed window size
   board.attach(*this);
 }
 
@@ -27,7 +27,9 @@ void Stones::clicked(Cell& c2)
                                                  : 255);  // черный белый
     if (pass_count == 2)
     {
-      exit(0);
+      // exit(0);
+      this->attach(cal2);
+      Fl::redraw();
     }
     return;
   }
@@ -36,9 +38,10 @@ void Stones::clicked(Cell& c2)
 
     pass_count = 0;
     board.set_black_turn(false);
-    stones.push_back(new BlackStone{*this});
+
     if (!board.ko(c2))
     {
+      stones.push_back(new BlackStone{*this});
       c2.attach_figure(stones[stones.size() - 1]);
       board.check_rules(c2);
     }
@@ -47,9 +50,10 @@ void Stones::clicked(Cell& c2)
   {
     pass_count = 0;
     board.set_black_turn(true);
-    stones.push_back(new WhiteStone{*this});
+
     if (!board.ko(c2))
     {
+      stones.push_back(new WhiteStone{*this});
       c2.attach_figure(stones[stones.size() - 1]);
       board.check_rules(c2);
     }

@@ -15,7 +15,7 @@ Cell::Type type_of_cell (int i, int j)
     return Cell::white;
 }
 
-Chessboard::Chessboard(Point xy, Callback cb_clicked)
+Board::Board(Point xy, Callback cb_clicked)
     : Widget{xy, size, size, "RusGame", nullptr},
       pass{Point(270, 0), cb_clicked, Cell::black}
 {
@@ -28,7 +28,7 @@ Chessboard::Chessboard(Point xy, Callback cb_clicked)
     }
 }
 
-void Chessboard::attach(Graph_lib::Window& win)
+void Board::attach(Graph_lib::Window& win)
 {
   for (int i = 0; i < cells.size(); i = i + 2)  // крепим клетки
   {
@@ -44,7 +44,7 @@ void Chessboard::attach(Graph_lib::Window& win)
   win.attach(pass_text);
 }
 
-bool Chessboard::ko(Cell& c2)
+bool Board::ko(Cell& c2)
 {
   if (black_turn && first_white_turn)
   {
@@ -72,9 +72,9 @@ bool Chessboard::ko(Cell& c2)
   return false;
 }
 
-int Chessboard::get_pass() { return pass.get_id(); }
+int Board::get_pass() { return pass.get_id(); }
 
-void Chessboard::check_rules(Cell& c2)
+void Board::check_rules(Cell& c2)
 {
   // std::cout << c2.get_id();
 
@@ -128,7 +128,7 @@ void Chessboard::check_rules(Cell& c2)
   blc.set_label(oss2.str());
 }
 
-bool Chessboard::check_around_black(int a, int b, bool first)
+bool Board::check_around_black(int a, int b, bool first)
 {
   if (first)
   {
@@ -142,7 +142,7 @@ bool Chessboard::check_around_black(int a, int b, bool first)
           to_remove_cells[i].detach_figure();
         }
       nums.clear();
-      // to_remove_cells.clear();
+      to_remove_cells.clear();
     }
     if (a + 1 < 10 && at(a + 1, b).has_black_figure())
     {
@@ -153,7 +153,7 @@ bool Chessboard::check_around_black(int a, int b, bool first)
           to_remove_cells[i].detach_figure();
         }
       nums.clear();
-      // to_remove_cells.clear();
+      to_remove_cells.clear();
     }
     if (b + 1 < 10 && at(a, b + 1).has_black_figure())
     {
@@ -164,7 +164,7 @@ bool Chessboard::check_around_black(int a, int b, bool first)
           to_remove_cells[i].detach_figure();
         }
       nums.clear();
-      // to_remove_cells.clear();
+      to_remove_cells.clear();
     }
     if (b - 1 > 0 && at(a, b - 1).has_black_figure())
     {
@@ -175,7 +175,7 @@ bool Chessboard::check_around_black(int a, int b, bool first)
           to_remove_cells[i].detach_figure();
         }
       nums.clear();
-      // to_remove_cells.clear();
+      to_remove_cells.clear();
     }
   }
 
@@ -266,7 +266,7 @@ bool Chessboard::check_around_black(int a, int b, bool first)
   return false;
 }
 
-bool Chessboard::death_check(int a, int b, bool black)
+bool Board::death_check(int a, int b, bool black)
 {
   // 2-проверкасуицида
   if (black)
@@ -284,7 +284,7 @@ bool Chessboard::death_check(int a, int b, bool black)
   return false;
 }
 
-bool Chessboard::check_around_white(int a, int b, bool first)
+bool Board::check_around_white(int a, int b, bool first)
 {
   if (first)
   {
@@ -298,7 +298,7 @@ bool Chessboard::check_around_white(int a, int b, bool first)
           to_remove_cells[i].detach_figure();
         }
       nums.clear();
-      // to_remove_cells.clear();
+      to_remove_cells.clear();
     }
     if (a + 1 < 10 && at(a + 1, b).has_white_figure())
     {
@@ -309,7 +309,7 @@ bool Chessboard::check_around_white(int a, int b, bool first)
           to_remove_cells[i].detach_figure();
         }
       nums.clear();
-      // to_remove_cells.clear();
+      to_remove_cells.clear();
     }
     if (b + 1 < 10 && at(a, b + 1).has_white_figure())
     {
@@ -320,7 +320,7 @@ bool Chessboard::check_around_white(int a, int b, bool first)
           to_remove_cells[i].detach_figure();
         }
       nums.clear();
-      // to_remove_cells.clear();
+      to_remove_cells.clear();
     }
 
     if (b - 1 > 0 && at(a, b - 1).has_white_figure())
@@ -332,7 +332,7 @@ bool Chessboard::check_around_white(int a, int b, bool first)
           to_remove_cells[i].detach_figure();
         }
       nums.clear();
-      // to_remove_cells.clear();
+      to_remove_cells.clear();
     }
   }
 
@@ -405,7 +405,7 @@ bool Chessboard::check_around_white(int a, int b, bool first)
   return false;
 }
 
-/*void Chessboard::recount()
+/*void Board::recount()
   std::cout << "recount";
   int around = 0;
   bool left = false;
@@ -551,7 +551,7 @@ bool Chessboard::check_around_white(int a, int b, bool first)
 }
 */
 
-/*bool Chessboard::is_on_black_territory(int a, int b)  // не смотреть
+/*bool Board::is_on_black_territory(int a, int b)  // не смотреть
 {
   int around = 0;
   std::cout << "bl_t";
@@ -630,7 +630,7 @@ bool Chessboard::check_around_white(int a, int b, bool first)
   return false;
 }
 */
-/*bool Chessboard::is_on_white_territory(int a, int b)  // не смотреть
+/*bool Board::is_on_white_territory(int a, int b)  // не смотреть
 {
   int around = 0;
   std::cout << "bl_t";
@@ -709,14 +709,14 @@ bool Chessboard::check_around_white(int a, int b, bool first)
   return false;
 }
 */
-Cell& Chessboard::at(int i, int c)  // строка и столбец
+Cell& Board::at(int i, int c)  // строка и столбец
 {
   // first cell has index 1
   if (i < 1 || 9 < i)
-    error("Chessboard::at:out of range");
+    error("Board::at:out of range");
 
   if (c < 1 || 9 < c)
-    error("Chessboard::at:out of range");
+    error("Board::at:out of range");
 
   return cells[(i - 1) * 2 * N + (c - 1) * 2];
 }

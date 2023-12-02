@@ -8,9 +8,12 @@ struct Figure
   virtual bool is_black () const = 0;
   virtual void attach (const Cell& c) = 0;
 
-  bool is_attached () const { return cell != nullptr; }
+  bool is_attached () const
+  {
+    return cell != nullptr;
+  }  // вероятно не нужно
 
-  void detach () { cell = nullptr; }
+  void detach () { cell = nullptr; }  // вероятно не нужно
 
   virtual ~Figure() = default;
 

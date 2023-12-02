@@ -13,6 +13,8 @@ set(HEADERS
     ${LIB_DIR}/Graph_lib/Window.h
 )
 set(SOURCES
+
+
     main.cpp
     board.cpp
     stones.h

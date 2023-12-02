@@ -12,7 +12,8 @@ struct Stones : Graph_lib::Window
 
 private:
   int pass_count;
-  Chessboard board;
+  Board board;
+  Graph_lib::Image cal2{Point{0, 0}, "end_game.jpg"};
 
   Graph_lib::Vector_ref<Figure> stones;
 

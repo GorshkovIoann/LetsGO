@@ -10,9 +10,9 @@
 using Graph_lib::Address;
 using Graph_lib::Point;
 
-struct Chessboard : Graph_lib::Widget
+struct Board : Graph_lib::Widget
 {
-  Chessboard(Point xy, Graph_lib::Callback cb_clicked);
+  Board(Point xy, Graph_lib::Callback cb_clicked);
 
   static constexpr int N =
       17;  //= 9 черных клеток, 8 перегородок размером с клетку
