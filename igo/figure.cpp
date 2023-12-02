@@ -4,6 +4,7 @@ using namespace Graph_lib;
 
 Stone::Stone(Graph_lib::Window& win) : Circle{Point{0, 0}, r}
 {
+
   set_style(Line_style{Line_style::solid, 2});
   win.attach(*this);
 }

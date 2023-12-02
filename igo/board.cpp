@@ -4,38 +4,30 @@
 #include <vector>
 
 using namespace Graph_lib;
-std::vector<int> nums;
-std::vector<int> nums2;
 
-Cell::Type type_of_cell (int i, int j)
-{
-  if (i % 2 == 0)
-    return (j % 2 == 0) ? Cell::black : Cell::white;
-  else
-    return Cell::white;
-}
+std::vector<int> nums2;
 
 Board::Board(Point xy, Callback cb_clicked)
     : Widget{xy, size, size, "RusGame", nullptr},
-      pass{Point(270, 0), cb_clicked, Cell::black}
+      pass{Point(270, 0), cb_clicked}
 {
-  for (int i = 0; i < N; ++i)
-    for (int j = 0; j < N; ++j)
+  for (int i = 0; i < N; i = i + 2)
+    for (int j = 0; j < N; j = i + 2)
     {  // заполняется по строкам начиная с нижней левой
       cells.push_back(new Cell{
           Point{margin + j * Cell::size, margin + (N - 1 - i) * Cell::size},
-          cb_clicked, type_of_cell(i, j)});
+          cb_clicked});
     }
 }
 
 void Board::attach(Graph_lib::Window& win)
 {
-  for (int i = 0; i < cells.size(); i = i + 2)  // крепим клетки
+  for (int i = 0; i < cells.size(); ++i)  // крепим клетки
   {
     win.attach(cells[i]);
   }
 
-  win.attach(cal);  // картинка поля
+  // win.attach(cal);  // картинка поля
 
   win.attach(whit);  // добавим счет
   win.attach(blc);

@@ -41,6 +41,7 @@ struct Board : Graph_lib::Widget
   void reset_pass_color (int i) { pass_text.set_color(i); }
 
 private:
+  std::vector<int> nums;
   Graph_lib::Image cal{Point{0, 0}, "rus.png"};
 
   Graph_lib::Text whit{Graph_lib::Point{40, 20}, "White score = 6.5"};

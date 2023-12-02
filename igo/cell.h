@@ -10,18 +10,10 @@ struct Figure;
 
 struct Cell : Graph_lib::Button
 {
-  enum Type
-  {
-    black,
-    white,  // все белые клетки мы в итоге просто скроем
 
-  };
-
-  Cell(Point xy, Graph_lib::Callback cb, Type t);
+  Cell(Point xy, Graph_lib::Callback cb);
 
   void attach (Graph_lib::Window& win) override;
-
-  bool is_black () const { return type == black; }
 
   void attach_figure (Figure& ch);
   void detach_figure ();
@@ -48,7 +40,7 @@ private:
   int id = 0;
   int x = 0;
   int y = 0;
-  Type type;
+
   Figure* fig{nullptr};
   Graph_lib::Vector_ref<Graph_lib::Rectangle> rectangles;
 
