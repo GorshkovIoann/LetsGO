@@ -5,7 +5,8 @@ using namespace Graph_lib;
 
 int big_id = 0;
 
-Cell::Cell(Point xy, Callback cb) : Button{xy, size, size, "", cb}
+Cell::Cell(Point xy, Callback cb, Type t)
+    : Button{xy, size, size, "", cb}, type{t}
 {  // для удобной идентификации клеток
   id = big_id;
   ++big_id;
@@ -73,5 +74,11 @@ void Cell::reset_black_color()
   if (!pw)
     error("Cell is not attached to a window");
 
-  pw->color(Color::black);
+  if (is_black())
+  {
+
+    pw->color(Color::black);
+  }
+  else
+    pw->hide();
 }

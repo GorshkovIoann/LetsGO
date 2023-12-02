@@ -5,29 +5,49 @@
 
 using namespace Graph_lib;
 
-std::vector<int> nums2;
+Cell::Type type_of_cell (int i, int j)
+{
+  if (i % 2 == 0)
+    return (j % 2 == 0) ? Cell::black : Cell::white;
+  else
+    return Cell::white;
+}
 
 Board::Board(Point xy, Callback cb_clicked)
     : Widget{xy, size, size, "RusGame", nullptr},
-      pass{Point(270, 0), cb_clicked}
+      pass{Point(270, 0), cb_clicked, Cell::black}
 {
-  for (int i = 0; i < N; i = i + 2)
-    for (int j = 0; j < N; j = i + 2)
+  for (int i = 0; i < N; ++i)
+    for (int j = 0; j < N; ++j)
     {  // заполняется по строкам начиная с нижней левой
+       // if(i%2==0 && j%2 == 0)
       cells.push_back(new Cell{
           Point{margin + j * Cell::size, margin + (N - 1 - i) * Cell::size},
-          cb_clicked});
+          cb_clicked, type_of_cell(i, j)});
     }
 }
 
 void Board::attach(Graph_lib::Window& win)
 {
+  int x = 1;
+  int y = 1;
   for (int i = 0; i < cells.size(); ++i)  // крепим клетки
   {
+    if (cells[i].is_black())
+    {
+      cells[i].set_position(y, x);
+      ++x;
+      if (x > 9)
+      {
+        ++y;
+        x = 1;
+      }
+      std::cout << x << y << std::endl;
+    }
     win.attach(cells[i]);
   }
 
-  // win.attach(cal);  // картинка поля
+  win.attach(cal);  // картинка поля
 
   win.attach(whit);  // добавим счет
   win.attach(blc);
@@ -70,25 +90,28 @@ void Board::check_rules(Cell& c2)
 {
   // std::cout << c2.get_id();
 
-  int a = 0;
-  int b = 0;
-  for (int i = 1; i <= 9; ++i)
-  {
-    for (int c = 1; c <= 9; ++c)
-    {
-      // std::cout << at(i, c).get_id();
+  int a = c2.get_y();
+  int b = c2.get_x();
+  std::cout << a << b;
 
-      if (at(i, c).get_id() == c2.get_id())
-      {
-        a = i;
-        b = c;
-        std::cout << 1;
-      }
-    }
-  }
+  /*for (int i = 1; i <= 9; ++i)
+   {
+     for (int c = 1; c <= 9; ++c)
+     {
+       // std::cout << at(i, c).get_id();
+
+       if (at(i, c).get_id() == c2.get_id())
+       {
+         a = i;
+         b = c;
+         std::cout << 1;
+       }
+     }
+   }
+   */
   if (black_turn)
   {  // был ход белых
-    check_around_black(a, b, true);
+    check_around_black(a, b);
     nums.clear();
     to_remove_cells.clear();
     if (death_check(a, b, true))
@@ -100,7 +123,7 @@ void Board::check_rules(Cell& c2)
   }
   else if (!black_turn)
   {  // был ход черных
-    check_around_white(a, b, true);
+    check_around_white(a, b);
     nums.clear();
     to_remove_cells.clear();
     if (death_check(a, b, false))
@@ -120,155 +143,124 @@ void Board::check_rules(Cell& c2)
   blc.set_label(oss2.str());
 }
 
-bool Board::check_around_black(int a, int b, bool first)
+bool Board::check(int a, int b)
 {
-  if (first)
+  bool del = true;
+  std::cout << "black";
+  nums.push_back(a * 10 + b);
+
+  if (a - 1 > 0 && !at(a - 1, b).has_figure())
+    return false;
+  if (a + 1 <= 9 && !at(a + 1, b).has_figure())
+    return false;
+  if (b + 1 <= 9 && !at(a, b + 1).has_figure())
+    return false;
+  if (b - 1 > 0 && !at(a, b - 1).has_figure())
+    return false;
+
+  if ((a - 1 > 0 &&
+       (at(a - 1, b).has_white_figure() == at(a, b).has_white_figure())) &&
+      std::count(nums.begin(), nums.end(), (a - 1) * 10 + b) == 0)
   {
-    std::cout << "first_black";
-    if (a - 1 > 0 && at(a - 1, b).has_black_figure())
-    {
-      if (check_around_black(a - 1, b, false))
-        for (int i = 0; i < to_remove_cells.size(); ++i)
-        {
-          ++white_count;
-          to_remove_cells[i].detach_figure();
-        }
-      nums.clear();
-      to_remove_cells.clear();
-    }
-    if (a + 1 < 10 && at(a + 1, b).has_black_figure())
-    {
-      if (check_around_black(a + 1, b, false))
-        for (int i = 0; i < to_remove_cells.size(); ++i)
-        {
-          ++white_count;
-          to_remove_cells[i].detach_figure();
-        }
-      nums.clear();
-      to_remove_cells.clear();
-    }
-    if (b + 1 < 10 && at(a, b + 1).has_black_figure())
-    {
-      if (check_around_black(a, b + 1, false))
-        for (int i = 0; i < to_remove_cells.size(); ++i)
-        {
-          ++white_count;
-          to_remove_cells[i].detach_figure();
-        }
-      nums.clear();
-      to_remove_cells.clear();
-    }
-    if (b - 1 > 0 && at(a, b - 1).has_black_figure())
-    {
-      if (check_around_black(a, b - 1, false))
-        for (int i = 0; i < to_remove_cells.size(); ++i)
-        {
-          ++white_count;
-          to_remove_cells[i].detach_figure();
-        }
-      nums.clear();
-      to_remove_cells.clear();
-    }
+    del = check(a - 1, b) && del;
+    std::cout << "utop" << a << b << std::endl;
   }
 
-  bool left = false;
-  bool right = false;
-  bool top = false;
-  bool down = false;
-  if (!first)
+  if ((a + 1 <= 9 &&
+       (at(a + 1, b).has_white_figure() == at(a, b).has_white_figure())) &&
+      std::count(nums.begin(), nums.end(), (a + 1) * 10 + b) == 0)
   {
-    std::cout << "black";
-    nums.push_back(a * 10 + b);
 
-    if (a - 1 > 0 && !at(a - 1, b).has_figure())
-      return false;
-    if (a + 1 <= 9 && !at(a + 1, b).has_figure())
-      return false;
-    if (b + 1 <= 9 && !at(a, b + 1).has_figure())
-      return false;
-    if (b - 1 > 0 && !at(a, b - 1).has_figure())
-      return false;
+    del = del && check(a + 1, b);
+    std::cout << "udown" << a << b << std::endl;
+  }
 
-    if (a - 1 == 0 || (a - 1 > 0 && at(a - 1, b).has_white_figure()) ||
-        std::count(nums.begin(), nums.end(), (a - 1) * 10 + b))
-    {
-      top = true;
-      std::cout << "top" << a << b << std::endl;
-    }
+  if ((b + 1 <= 9 &&
+       (at(a, b + 1).has_black_figure() != at(a, b).has_white_figure())) &&
+      std::count(nums.begin(), nums.end(), (a) * 10 + b + 1) == 0)
+  {
 
-    if ((a - 1 > 0 && at(a - 1, b).has_black_figure()) &&
-        std::count(nums.begin(), nums.end(), (a - 1) * 10 + b) == 0)
-    {
-      if (check_around_black(a - 1, b, false))
-        top = true;
-      std::cout << "utop" << a << b << std::endl;
-    }
+    del = del && check(a, b + 1);
+    std::cout << "uright" << a << b << std::endl;
+  }
 
-    if (a + 1 == 10 || (a + 1 <= 9 && at(a + 1, b).has_white_figure()) ||
-        std::count(nums.begin(), nums.end(), (a + 1) * 10 + b))
-    {
-      down = true;
-      std::cout << "down" << a << b << std::endl;
-    }
-    if ((a + 1 <= 9 && at(a + 1, b).has_black_figure()) &&
-        std::count(nums.begin(), nums.end(), (a + 1) * 10 + b) == 0)
-    {
+  if ((b - 1 > 0 &&
+       (at(a, b - 1).has_black_figure() != at(a, b).has_white_figure())) &&
+      std::count(nums.begin(), nums.end(), (a) * 10 + b - 1) == 0)
+  {
 
-      if (check_around_black(a + 1, b, false))
-        down = true;
-      std::cout << "udown" << a << b << std::endl;
-    }
-
-    if (b + 1 == 10 || (b + 1 <= 9 && at(a, b + 1).has_white_figure()) ||
-        std::count(nums.begin(), nums.end(), (a) * 10 + b + 1))
-    {
-      right = true;
-      std::cout << "right" << a << b << std::endl;
-    }
-    if ((b + 1 <= 9 && at(a, b + 1).has_black_figure()) &&
-        std::count(nums.begin(), nums.end(), (a) * 10 + b + 1) == 0)
-    {
-
-      if (check_around_black(a, b + 1, false))
-        right = true;
-      std::cout << "uright" << a << b << std::endl;
-    }
-    if (b - 1 == 0 || (b - 1 > 0 && at(a, b - 1).has_white_figure()) ||
-        std::count(nums.begin(), nums.end(), (a) * 10 + b - 1))
-    {
-      left = true;
-      std::cout << "left" << a << b << std::endl;
-    }
-
-    if ((b - 1 > 0 && at(a, b - 1).has_black_figure()) &&
-        std::count(nums.begin(), nums.end(), (a) * 10 + b - 1) == 0)
-    {
-
-      if (check_around_black(a, b - 1, false))
-        left = true;
-      std::cout << "uleft" << a << b << std::endl;
-    }
-    if (left && right && top && down)
-    {
-      to_remove_cells.push_back(at(a, b));
-      return true;
-    }
-    return false;
+    del = del && check(a, b - 1);
+    std::cout << "uleft" << a << b << std::endl;
+  }
+  if (del)
+  {
+    to_remove_cells.push_back(at(a, b));
+    return true;
   }
   return false;
+}
+
+void Board::check_around_black(int a, int b)
+{
+
+  std::cout << "first_black";
+  if (a - 1 > 0 && at(a - 1, b).has_black_figure())
+  {
+    if (check(a - 1, b))
+      for (int i = 0; i < to_remove_cells.size(); ++i)
+      {
+        ++white_count;
+        to_remove_cells[i].detach_figure();
+      }
+    nums.clear();
+    to_remove_cells.clear();
+  }
+  if (a + 1 < 10 && at(a + 1, b).has_black_figure())
+  {
+    if (check(a + 1, b))
+      for (int i = 0; i < to_remove_cells.size(); ++i)
+      {
+        ++white_count;
+        to_remove_cells[i].detach_figure();
+      }
+    nums.clear();
+    to_remove_cells.clear();
+  }
+  if (b + 1 < 10 && at(a, b + 1).has_black_figure())
+  {
+    if (check(a, b + 1))
+      for (int i = 0; i < to_remove_cells.size(); ++i)
+      {
+        ++white_count;
+        to_remove_cells[i].detach_figure();
+      }
+    nums.clear();
+    to_remove_cells.clear();
+  }
+  if (b - 1 > 0 && at(a, b - 1).has_black_figure())
+  {
+    if (check(a, b - 1))
+      for (int i = 0; i < to_remove_cells.size(); ++i)
+      {
+        ++white_count;
+        to_remove_cells[i].detach_figure();
+      }
+    nums.clear();
+    to_remove_cells.clear();
+  }
 }
 
 bool Board::death_check(int a, int b, bool black)
 {
   // 2-проверкасуицида
   if (black)
-    if (check_around_white(a, b, false))
+    if (check(a, b))
     {
       black_turn = !black_turn;
       return true;
     }
   if (!black)
-    if (check_around_black(a, b, false))
+    if (check(a, b))
     {
       black_turn = !black_turn;
       return true;
@@ -276,431 +268,480 @@ bool Board::death_check(int a, int b, bool black)
   return false;
 }
 
-bool Board::check_around_white(int a, int b, bool first)
+void Board::check_around_white(int a, int b)
 {
-  if (first)
-  {
-    std::cout << "first_w";
-    if (a - 1 > 0 && at(a - 1, b).has_white_figure())
-    {
-      if (check_around_white(a - 1, b, false))
-        for (int i = 0; i < to_remove_cells.size(); ++i)
-        {
-          ++black_count;
-          to_remove_cells[i].detach_figure();
-        }
-      nums.clear();
-      to_remove_cells.clear();
-    }
-    if (a + 1 < 10 && at(a + 1, b).has_white_figure())
-    {
-      if (check_around_white(a + 1, b, false))
-        for (int i = 0; i < to_remove_cells.size(); ++i)
-        {
-          ++black_count;
-          to_remove_cells[i].detach_figure();
-        }
-      nums.clear();
-      to_remove_cells.clear();
-    }
-    if (b + 1 < 10 && at(a, b + 1).has_white_figure())
-    {
-      if (check_around_white(a, b + 1, false))
-        for (int i = 0; i < to_remove_cells.size(); ++i)
-        {
-          ++black_count;
-          to_remove_cells[i].detach_figure();
-        }
-      nums.clear();
-      to_remove_cells.clear();
-    }
 
-    if (b - 1 > 0 && at(a, b - 1).has_white_figure())
-    {
-      if (check_around_white(a, b - 1, false))
-        for (int i = 0; i < to_remove_cells.size(); ++i)
-        {
-          ++black_count;
-          to_remove_cells[i].detach_figure();
-        }
-      nums.clear();
-      to_remove_cells.clear();
-    }
+  std::cout << "first_w";
+  if (a - 1 > 0 && at(a - 1, b).has_white_figure())
+  {
+    if (check(a - 1, b))
+      for (int i = 0; i < to_remove_cells.size(); ++i)
+      {
+        ++black_count;
+        to_remove_cells[i].detach_figure();
+      }
+    nums.clear();
+    to_remove_cells.clear();
+  }
+  if (a + 1 < 10 && at(a + 1, b).has_white_figure())
+  {
+    if (check(a + 1, b))
+      for (int i = 0; i < to_remove_cells.size(); ++i)
+      {
+        ++black_count;
+        to_remove_cells[i].detach_figure();
+      }
+    nums.clear();
+    to_remove_cells.clear();
+  }
+  if (b + 1 < 10 && at(a, b + 1).has_white_figure())
+  {
+    if (check(a, b + 1))
+      for (int i = 0; i < to_remove_cells.size(); ++i)
+      {
+        ++black_count;
+        to_remove_cells[i].detach_figure();
+      }
+    nums.clear();
+    to_remove_cells.clear();
   }
 
-  bool left = false;
-  bool right = false;
-  bool top = false;
-  bool down = false;
-  if (!first)
+  if (b - 1 > 0 && at(a, b - 1).has_white_figure())
   {
-    std::cout << "w";
-    nums.push_back(a * 10 + b);
-
-    if (a - 1 > 0 && !at(a - 1, b).has_figure())
-      return false;
-    if (a + 1 <= 9 && !at(a + 1, b).has_figure())
-      return false;
-    if (b + 1 <= 9 && !at(a, b + 1).has_figure())
-      return false;
-    if (b - 1 > 0 && !at(a, b - 1).has_figure())
-      return false;
-
-    if (a - 1 == 0 || (a - 1 > 0 && at(a - 1, b).has_black_figure()) ||
-        std::count(nums.begin(), nums.end(), (a - 1) * 10 + b))
-      top = true;
-    if ((a - 1 > 0 && at(a - 1, b).has_white_figure()) &&
-        std::count(nums.begin(), nums.end(), (a - 1) * 10 + b) == 0)
-    {
-      if (check_around_white(a - 1, b, false))
-        top = true;
-    }
-    if (a + 1 == 10 || (a + 1 <= 9 && at(a + 1, b).has_black_figure()) ||
-        std::count(nums.begin(), nums.end(), (a + 1) * 10 + b))
-      down = true;
-    if ((a + 1 <= 9 && at(a + 1, b).has_white_figure()) &&
-        std::count(nums.begin(), nums.end(), (a + 1) * 10 + b) == 0)
-    {
-
-      if (check_around_white(a + 1, b, false))
-        down = true;
-    }
-    if (b + 1 == 10 || (b + 1 <= 9 && at(a, b + 1).has_black_figure()) ||
-        std::count(nums.begin(), nums.end(), (a) * 10 + b + 1))
-      right = true;
-    if ((b + 1 <= 9 && at(a, b + 1).has_white_figure()) &&
-        std::count(nums.begin(), nums.end(), (a) * 10 + b + 1) == 0)
-    {
-
-      if (check_around_white(a, b + 1, false))
-        right = true;
-    }
-    if (b - 1 == 0 || (b - 1 > 0 && at(a, b - 1).has_black_figure()) ||
-        std::count(nums.begin(), nums.end(), (a) * 10 + b - 1))
-      left = true;
-
-    if ((b - 1 > 0 && at(a, b - 1).has_white_figure()) &&
-        std::count(nums.begin(), nums.end(), (a) * 10 + b - 1) == 0)
-    {
-
-      if (check_around_white(a, b - 1, false))
-        left = true;
-    }
-    if (left && right && top && down)
-    {
-      to_remove_cells.push_back(at(a, b));
-
-      return true;
-    }
-    return false;
+    if (check(a, b - 1))
+      for (int i = 0; i < to_remove_cells.size(); ++i)
+      {
+        ++black_count;
+        to_remove_cells[i].detach_figure();
+      }
+    nums.clear();
+    to_remove_cells.clear();
   }
-  return false;
 }
 
-/*void Board::recount()
+void Board::check_num_w(int i, int j, int group_num)
+{
+  if (copy2[i][j] == 0)
+  {
+    copy2[i][j] = group_num;
+    if (i - 1 >= 0)
+      check_num_w(i - 1, j, group_num);
+    if (i + 1 < 9)
+      check_num_w(i + 1, j, group_num);
+    if (j - 1 >= 0)
+      check_num_w(i, j - 1, group_num);
+    if (j + 1 < 9)
+      check_num_w(i, j + 1, group_num);
+  }
+}
+
+void Board::check_num_bl(int i, int j, int group_num)
+{
+  if (copy1[i][j] == 0)
+  {
+    copy1[i][j] = group_num;
+    if (i - 1 >= 0)
+      check_num_bl(i - 1, j, group_num);
+    if (i + 1 < 9)
+      check_num_bl(i + 1, j, group_num);
+    if (j - 1 >= 0)
+      check_num_bl(i, j - 1, group_num);
+    if (j + 1 < 9)
+      check_num_bl(i, j + 1, group_num);
+  }
+}
+
+void Board::check_w_line(int i, int j, int group_num)
+{
+  copy2[i][j] = group_num;
+  if (i - 1 >= 0)
+  {
+    if (copy2[i - 1][j] == 1)
+    {
+      check_w_line(i - 1, j, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy2[i - 1][j]) == 0)
+    {
+      territory.push_back(copy2[i - 1][j]);
+    }
+  }
+
+  if (i + 1 < 9)
+  {
+    if (copy2[i + 1][j] == 1)
+    {
+      check_w_line(i + 1, j, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy2[i + 1][j]) == 0)
+    {
+      territory.push_back(copy2[i + 1][j]);
+    }
+  }
+
+  if (j - 1 >= 0)
+  {
+    if (copy2[i][j - 1] == 1)
+    {
+      check_w_line(i, j - 1, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy2[i][j - 1]) == 0)
+    {
+      territory.push_back(copy2[i][j - 1]);
+    }
+  }
+
+  if (j + 1 < 9)
+  {
+    if (copy2[i][j + 1] == 1)
+    {
+      check_w_line(i, j + 1, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy2[i][j + 1]) == 0)
+    {
+      territory.push_back(copy2[i][j + 1]);
+    }
+  }
+  if (i - 1 >= 0 && j - 1 >= 0)
+  {
+    if (copy2[i - 1][j - 1] == 1)
+    {
+      check_w_line(i - 1, j - 1, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy2[i - 1][j - 1]) == 0)
+    {
+      territory.push_back(copy2[i - 1][j - 1]);
+    }
+  }
+
+  if (i + 1 < 9 && j + 1 < 9)
+  {
+    if (copy2[i + 1][j + 1] == 1)
+    {
+      check_w_line(i + 1, j + 1, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy2[i + 1][j + 1]) == 0)
+    {
+      territory.push_back(copy2[i + 1][j + 1]);
+    }
+  }
+  if (j - 1 >= 0 && i + 1 < 9)
+  {
+    if (copy2[i + 1][j - 1] == 1)
+    {
+      check_w_line(i + 1, j - 1, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy2[i + 1][j - 1]) == 0)
+    {
+      territory.push_back(copy2[i + 1][j - 1]);
+    }
+  }
+  if (j + 1 < 9 && i - 1 >= 0)
+  {
+    if (copy2[i + 1][j] == 1)
+    {
+      check_w_line(i - 1, j + 1, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy2[i - 1][j + 1]) == 0)
+    {
+      territory.push_back(copy2[i - 1][j + 1]);
+    }
+  }
+}
+
+void Board::check_bl_line(int i, int j, int group_num)
+{
+  copy1[i][j] = group_num;
+  if (i - 1 >= 0)
+  {
+    if (copy1[i - 1][j] == 2)
+    {
+      check_bl_line(i - 1, j, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy1[i - 1][j]) == 0)
+    {
+      territory.push_back(copy1[i - 1][j]);
+    }
+  }
+
+  if (i + 1 < 9)
+  {
+    if (copy1[i + 1][j] == 2)
+    {
+      check_bl_line(i + 1, j, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy1[i + 1][j]) == 0)
+    {
+      territory.push_back(copy1[i + 1][j]);
+    }
+  }
+
+  if (j - 1 >= 0)
+  {
+    if (copy1[i][j - 1] == 2)
+    {
+      check_bl_line(i, j - 1, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy1[i][j - 1]) == 0)
+    {
+      territory.push_back(copy1[i][j - 1]);
+    }
+  }
+
+  if (j + 1 < 9)
+  {
+    if (copy1[i][j + 1] == 2)
+    {
+      check_bl_line(i, j + 1, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy1[i][j + 1]) == 0)
+    {
+      territory.push_back(copy1[i][j + 1]);
+    }
+  }
+  if (i - 1 >= 0 && j - 1 >= 0)
+  {
+    if (copy1[i - 1][j - 1] == 2)
+    {
+      check_bl_line(i - 1, j - 1, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy1[i - 1][j - 1]) == 0)
+    {
+      territory.push_back(copy1[i - 1][j - 1]);
+    }
+  }
+
+  if (i + 1 < 9 && j + 1 < 9)
+  {
+    if (copy1[i + 1][j + 1] == 2)
+    {
+      check_bl_line(i + 1, j + 1, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy1[i + 1][j + 1]) == 0)
+    {
+      territory.push_back(copy1[i + 1][j + 1]);
+    }
+  }
+  if (j - 1 >= 0 && i + 1 < 9)
+  {
+    if (copy1[i + 1][j - 1] == 2)
+    {
+      check_bl_line(i + 1, j - 1, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy1[i + 1][j - 1]) == 0)
+    {
+      territory.push_back(copy1[i + 1][j - 1]);
+    }
+  }
+  if (j + 1 < 9 && i - 1 >= 0)
+  {
+    if (copy1[i + 1][j] == 2)
+    {
+      check_bl_line(i - 1, j + 1, group_num);
+    }
+    else if (std::count(territory.begin(), territory.end(),
+                        copy1[i - 1][j + 1]) == 0)
+    {
+      territory.push_back(copy1[i - 1][j + 1]);
+    }
+  }
+}
+
+void Board::recount()
+{
+
+  int group_num = 5;
+  int bl_num = 100;
+  int w_num = 200;
   std::cout << "recount";
-  int around = 0;
-  bool left = false;
-  bool right = false;
-  bool top = false;
-  bool down = false;
+  int num_cells[9][9];
   for (int x = 0; x < cells.size(); ++x)
   {
-    int a = 0;
-    int b = 0;
-    for (int i = 1; i <= 9; ++i)
+    if (cells[x].is_black())
     {
-      for (int c = 1; c <= 9; ++c)
+      if (cells[x].has_black_figure())
       {
+        num_cells[cells[x].get_y() - 1][cells[x].get_x() - 1] = 2;
+      }
+      if (cells[x].has_white_figure())
+      {
+        num_cells[cells[x].get_y() - 1][cells[x].get_x() - 1] = 1;
+      }
+      if (!cells[x].has_figure())
+        num_cells[cells[x].get_y() - 1][cells[x].get_x() - 1] = 0;
+    }
+  }
+  // forblack
 
-        if (at(i, c).get_id() == cells[x].get_id())
+  for (int i = 0; i < 9; ++i)
+  {
+    for (int j = 0; j < 9; ++j)
+    {
+      // std::cout << num_cells[i][j] << std::endl;
+      copy1[i][j] = num_cells[i][j];
+      if (copy1[i][j] == 1)
+        copy1[i][j] = 0;
+    }
+  }
+
+  for (int i = 0; i < 9; ++i)
+  {
+    for (int j = 0; j < 9; ++j)
+    {
+      check_num_bl(i, j, group_num);
+      group_num++;
+    }
+  }
+  /*for (int i = 0; i < 9; ++i)
+  {
+    for (int j = 0; j < 9; ++j)
+    {
+      std::cout << copy1[i][j] << std::endl;
+    }
+  }*/
+  for (int i = 0; i < 9; ++i)
+  {
+    for (int j = 0; j < 9; ++j)
+    {
+      if (copy1[i][j] == 2)
+      {
+        check_bl_line(i, j, bl_num);
+        if (territory.size() > 2)
         {
-          a = i;
-          b = c;
+          for (int x : territory)
+          {
+            std::cout << x << std::endl;
+            if (x < 100)
+              bl_territory.push_back(x);
+          }
+        }
+        territory.clear();
+        bl_num++;
+      }
+    }
+  }
+  // for white
+
+  group_num = 5;
+  for (int i = 0; i < 9; ++i)
+  {
+    for (int j = 0; j < 9; ++j)
+    {
+      copy2[i][j] = num_cells[i][j];
+      if (copy2[i][j] == 2)
+        copy2[i][j] = 0;
+    }
+  }
+
+  for (int i = 0; i < 9; ++i)
+  {
+    for (int j = 0; j < 9; ++j)
+    {
+      check_num_w(i, j, group_num);
+      group_num++;
+    }
+  }
+
+  for (int i = 0; i < 9; ++i)
+  {
+    for (int j = 0; j < 9; ++j)
+    {
+      if (copy2[i][j] == 1)
+      {
+        check_w_line(i, j, w_num);
+        if (territory.size() > 2)
+        {
+          for (int x : territory)
+          {
+            std::cout << x << std::endl;
+            if (x < 100)
+              w_territory.push_back(x);
+          }
+        }
+        territory.clear();
+        w_num++;
+      }
+    }
+  }
+  // общая проверка
+  for (int i = 0; i < 9; ++i)
+  {
+    for (int j = 0; j < 9; ++j)
+    {
+      if (copy2[i][j] > 99)
+      {
+        int t = copy1[i][j];
+        for (int i = 0; i < 9; ++i)
+        {
+          for (int j = 0; j < 9; ++j)
+          {
+            if (copy1[i][j] == t)
+              copy1[i][j] = 99;
+          }
+        }
+      }
+      if (copy1[i][j] > 99)
+      {
+        int t = copy2[i][j];
+        for (int i = 0; i < 9; ++i)
+        {
+          for (int j = 0; j < 9; ++j)
+          {
+            if (copy2[i][j] == t)
+              copy2[i][j] = 99;
+          }
         }
       }
     }
-    std::cout << "start_enum";
-    nums.push_back(a * 10 + b);
-    if (a - 1 == 0 || at(a - 1, b).has_black_figure() ||
-        is_on_black_territory(a - 1, b))
+  }
+  for (int i = 0; i < 9; ++i)
+  {
+    for (int j = 0; j < 9; ++j)
     {
-      std::cout << "start_enum1";
-      top = true;
-      if ((a - 1 != 0) && (at(a - 1, b).has_black_figure() ||
-                           is_on_black_territory(a - 1, b)))
+      if (copy1[i][j] > 99 || copy2[i][j] > 99)
       {
-        ++around;
-        std::cout << "start_enum.0";
-      }
-      std::cout << "start_enum.0";
-    }
-    if (a + 1 == 10 || at(a + 1, b).has_black_figure() ||
-        is_on_black_territory(a + 1, b))
-    {
-      std::cout << "start_enum2";
-      down = true;
-      if ((a + 1 != 10) && (at(a + 1, b).has_black_figure() ||
-                            is_on_black_territory(a + 1, b)))
-        ++around;
-    }
-    if (b + 1 == 10 || at(a, b + 1).has_black_figure() ||
-        is_on_black_territory(a, b + 1))
-    {
-      right = true;
-      if ((b + 1 != 10) && (at(a, b + 1).has_black_figure() ||
-                            is_on_black_territory(a, b + 1)))
-        ++around;
-    }
-    if (b - 1 == 0 || at(a, b - 1).has_black_figure() ||
-        is_on_black_territory(a, b - 1))
-    {
-      left = true;
-      if ((a - 1 != 0) && (at(a, b - 1).has_black_figure() ||
-                           is_on_black_territory(a, b - 1)))
-        ++around;
-    }
-
-    if (left && right && top && down && around >= 2)
-    {
-      if (at(a, b).has_white_figure())
-      {
-        black_territory = black_territory + 2;
-        std::cout << "+2b";
       }
       else
       {
-        black_territory = black_territory + 1;
-        std::cout << "+1b";
+        if (std::count(w_territory.begin(), w_territory.end(),
+                       copy2[i][j]) > 0 &&
+            std::count(bl_territory.begin(), bl_territory.end(),
+                       copy1[i][j]) == 0)
+        {
+          white_count++;
+        }
+        if (std::count(w_territory.begin(), w_territory.end(),
+                       copy2[i][j]) == 0 &&
+            std::count(bl_territory.begin(), bl_territory.end(),
+                       copy1[i][j]) > 0)
+        {
+          black_count++;
+        }
       }
     }
-    nums.clear();
-    nums2.clear();
-    around = 0;
-    std::cout << "en_b";
-
-    nums.push_back(a * 10 + b);
-    // проверка принадлежности белой территории
-    if (a - 1 == 0 || at(a - 1, b).has_white_figure() ||
-        is_on_white_territory(a - 1, b))
-    {
-      std::cout << "start_enum1";
-      top = true;
-      if ((a - 1 != 0) && (at(a - 1, b).has_white_figure() ||
-                           is_on_white_territory(a - 1, b)))
-      {
-        ++around;
-        std::cout << "start_enum.0on_wite";
-      }
-      std::cout << "start_enum.on_wht";
-    }
-    if (a + 1 == 10 || at(a + 1, b).has_white_figure() ||
-        is_on_white_territory(a + 1, b))
-    {
-      std::cout << "start_enum2";
-      down = true;
-      if ((a + 1 != 10) && (at(a + 1, b).has_white_figure() ||
-                            is_on_white_territory(a + 1, b)))
-        ++around;
-    }
-    if (b + 1 == 10 || at(a, b + 1).has_white_figure() ||
-        is_on_white_territory(a, b + 1))
-    {
-      right = true;
-      if ((b + 1 != 10) && (at(a, b + 1).has_white_figure() ||
-                            is_on_white_territory(a, b + 1)))
-        ++around;
-    }
-    if (b - 1 == 0 || at(a, b - 1).has_white_figure() ||
-        is_on_white_territory(a, b - 1))
-    {
-      left = true;
-      if ((a - 1 != 0) && (at(a, b - 1).has_white_figure() ||
-                           is_on_white_territory(a, b - 1)))
-        ++around;
-    }
-
-    if (left && right && top && down && around >= 2)
-    {
-      if (at(a, b).has_black_figure())
-        white_territory = white_territory + 2;
-      else
-        white_territory = white_territory + 1;
-    }
-    std::cout << "en_w";
-    nums.clear();
-    nums2.clear();
-    around = 0;
   }
   std::ostringstream oss;
-  oss << "White score = " << white_count + white_territory;
+  oss << "White score = " << white_count;
   whit.set_label(oss.str());
   std::ostringstream oss2;
-  oss2 << "Black score = " << black_count + black_territory;
+  oss2 << "Black score = " << black_count;
   blc.set_label(oss2.str());
-  white_territory = 0;
-  black_territory = 0;
 }
-*/
 
-/*bool Board::is_on_black_territory(int a, int b)  // не смотреть
-{
-  int around = 0;
-  std::cout << "bl_t";
-  bool left = false;
-  bool right = false;
-  bool top = false;
-  bool down = false;
-  nums.push_back(a * 10 + b);
-  if (a - 1 == 0 ||
-      std::count(nums.begin(), nums.end(), (a - 1) * 10 + b) ||
-      at(a - 1, b).has_black_figure() || is_on_black_territory(a - 1, b))
-  {
-    std::cout << "start_enum1";
-    top = true;
-    if ((a - 1 != 0) &&
-        (at(a - 1, b).has_black_figure() ||
-         (std::count(nums2.begin(), nums2.end(), (a - 1) * 10 + b) == 0 &&
-          is_on_black_territory(a - 1, b)) ||
-         (std::count(nums.begin(), nums.end(), (a - 1) * 10 + b) == 0 &&
-          is_on_black_territory(a - 1, b))))
-    {
-      ++around;
-      std::cout << "start_enum.0on_blc";
-    }
-    std::cout << "start_enum.0on_blc";
-  }
-  if (a + 1 == 10 ||
-      std::count(nums.begin(), nums.end(), (a + 1) * 10 + b) ||
-      at(a + 1, b).has_black_figure() || is_on_black_territory(a + 1, b))
-  {
-    std::cout << "start_enum2";
-    down = true;
-    if ((a + 1 != 10) &&
-        (at(a + 1, b).has_black_figure() ||
-         (std::count(nums2.begin(), nums2.end(), (a + 1) * 10 + b) == 0 &&
-          is_on_black_territory(a - 1, b)) ||
-         (std::count(nums.begin(), nums.end(), (a + 1) * 10 + b) == 0 &&
-          is_on_black_territory(a + 1, b))))
-
-      ++around;
-  }
-  if (b + 1 == 10 ||
-      std::count(nums.begin(), nums.end(), (a) * 10 + b + 1) ||
-      at(a, b + 1).has_black_figure() || is_on_black_territory(a, b + 1))
-  {
-    right = true;
-    if ((b + 1 != 10) &&
-        (at(a, b + 1).has_black_figure() ||
-         (std::count(nums2.begin(), nums2.end(), (a) * 10 + b + 1) == 0 &&
-          is_on_black_territory(a, b + 1)) ||
-         (std::count(nums.begin(), nums.end(), (a) * 10 + b + 1) == 0 &&
-          is_on_black_territory(a, b + 1))))
-
-      ++around;
-  }
-  if (b - 1 == 0 ||
-      std::count(nums.begin(), nums.end(), (a) * 10 + b - 1) ||
-      at(a, b - 1).has_black_figure() || is_on_black_territory(a, b - 1))
-  {
-    left = true;
-    if ((b - 1 != 0) &&
-        (at(a, b - b).has_black_figure() ||
-         (std::count(nums2.begin(), nums2.end(), (a) * 10 + b - 1) == 0 &&
-          is_on_black_territory(a, b - 1)) ||
-         (std::count(nums.begin(), nums.end(), (a) * 10 + b - 1) == 0 &&
-          is_on_black_territory(a, b - 1))))
-
-      ++around;
-  }
-
-  if (left && right && top && down && around >= 2)
-  {
-    nums2.push_back(a * 10 + b);
-    return true;
-  }
-  return false;
-}
-*/
-/*bool Board::is_on_white_territory(int a, int b)  // не смотреть
-{
-  int around = 0;
-  std::cout << "bl_t";
-  bool left = false;
-  bool right = false;
-  bool top = false;
-  bool down = false;
-  nums.push_back(a * 10 + b);
-  if (a - 1 == 0 ||
-      std::count(nums.begin(), nums.end(), (a - 1) * 10 + b) ||
-      at(a - 1, b).has_white_figure() || is_on_white_territory(a - 1, b))
-  {
-    std::cout << "start_enum1";
-    top = true;
-    if ((a - 1 != 0) &&
-        (at(a - 1, b).has_white_figure() ||
-         (std::count(nums2.begin(), nums2.end(), (a - 1) * 10 + b) == 0 &&
-          is_on_white_territory(a - 1, b)) ||
-         (std::count(nums.begin(), nums.end(), (a - 1) * 10 + b) == 0 &&
-          is_on_white_territory(a - 1, b))))
-    {
-      ++around;
-      std::cout << "start_enum.0on_blc";
-    }
-    std::cout << "start_enum.0on_blc";
-  }
-  if (a + 1 == 10 ||
-      std::count(nums.begin(), nums.end(), (a + 1) * 10 + b) ||
-      at(a + 1, b).has_white_figure() || is_on_white_territory(a + 1, b))
-  {
-    std::cout << "start_enum2";
-    down = true;
-    if ((a + 1 != 10) &&
-        (at(a + 1, b).has_white_figure() ||
-         (std::count(nums2.begin(), nums2.end(), (a + 1) * 10 + b) == 0 &&
-          is_on_white_territory(a - 1, b)) ||
-         (std::count(nums.begin(), nums.end(), (a + 1) * 10 + b) == 0 &&
-          is_on_white_territory(a + 1, b))))
-
-      ++around;
-  }
-  if (b + 1 == 10 ||
-      std::count(nums.begin(), nums.end(), (a) * 10 + b + 1) ||
-      at(a, b + 1).has_white_figure() || is_on_white_territory(a, b + 1))
-  {
-    right = true;
-    if ((b + 1 != 10) &&
-        (at(a, b + 1).has_white_figure() ||
-         (std::count(nums2.begin(), nums2.end(), (a) * 10 + b + 1) == 0 &&
-          is_on_white_territory(a, b + 1)) ||
-         (std::count(nums.begin(), nums.end(), (a) * 10 + b + 1) == 0 &&
-          is_on_white_territory(a, b + 1))))
-
-      ++around;
-  }
-  if (b - 1 == 0 ||
-      std::count(nums.begin(), nums.end(), (a) * 10 + b - 1) ||
-      at(a, b - 1).has_white_figure() || is_on_white_territory(a, b - 1))
-  {
-    left = true;
-    if ((b - 1 != 0) &&
-        (at(a, b - b).has_white_figure() ||
-         (std::count(nums2.begin(), nums2.end(), (a) * 10 + b - 1) == 0 &&
-          is_on_white_territory(a, b - 1)) ||
-         (std::count(nums.begin(), nums.end(), (a) * 10 + b - 1) == 0 &&
-          is_on_white_territory(a, b - 1))))
-
-      ++around;
-  }
-
-  if (left && right && top && down && around >= 2)
-  {
-    nums2.push_back(a * 10 + b);
-    return true;
-  }
-  return false;
-}
-*/
 Cell& Board::at(int i, int c)  // строка и столбец
 {
   // first cell has index 1

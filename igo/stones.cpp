@@ -28,7 +28,8 @@ void Stones::clicked(Cell& c2)
     if (pass_count == 2)
     {
       // exit(0);
-      this->attach(cal2);
+
+      board.recount();
       Fl::redraw();
     }
     return;

@@ -83,6 +83,10 @@
         "xlocinfo": "cpp",
         "xlocmes": "cpp",
         "xloctime": "cpp",
-        "xtr1common": "cpp"
+        "xtr1common": "cpp",
+        "bitset": "cpp",
+        "forward_list": "cpp",
+        "regex": "cpp",
+        "iomanip": "cpp"
     }
 }

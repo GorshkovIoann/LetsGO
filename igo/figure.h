@@ -17,19 +17,7 @@ struct Figure
 
   virtual ~Figure() = default;
 
-  void set_xy (int a, int b)
-  {
-    x = a;
-    y = b;
-  }
-
-  int get_x () { return x; }
-
-  int get_y () { return y; }
-
 protected:
-  int x = 0;
-  int y = 0;
   const Cell* cell{nullptr};
 };
 

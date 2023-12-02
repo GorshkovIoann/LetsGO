@@ -10,10 +10,18 @@ struct Figure;
 
 struct Cell : Graph_lib::Button
 {
+  enum Type
+  {
+    black,
+    white,  // все белые клетки мы в итоге просто скроем
 
-  Cell(Point xy, Graph_lib::Callback cb);
+  };
+
+  Cell(Point xy, Graph_lib::Callback cb, Type t);
 
   void attach (Graph_lib::Window& win) override;
+
+  bool is_black () const { return type == black; }
 
   void attach_figure (Figure& ch);
   void detach_figure ();
@@ -26,10 +34,20 @@ struct Cell : Graph_lib::Button
 
   int get_id () { return id; }
 
+  int get_x () { return x; }
+
+  int get_y () { return y; }
+
   int get_position ()
   {
     return y * 10 + x;
   }  // вернет число:первая цифрв столбец,вторая строка
+
+  void set_position (int a, int b)
+  {
+    y = a;
+    x = b;
+  }
 
   const Figure& figure () const;
   Point center () const;
@@ -40,7 +58,7 @@ private:
   int id = 0;
   int x = 0;
   int y = 0;
-
+  Type type;
   Figure* fig{nullptr};
   Graph_lib::Vector_ref<Graph_lib::Rectangle> rectangles;
 

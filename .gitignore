@@ -1,2 +1,5 @@
 bin/
 build/
+CMakeLists.txt
+igo/CMakeLists.txt
+.gitignore

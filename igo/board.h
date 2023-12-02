@@ -31,16 +31,27 @@ struct Board : Graph_lib::Widget
   void set_black_turn (bool bl_turn) { black_turn = bl_turn; }
 
   bool death_check (int a, int b, bool black);
-  bool check_around_white (int a, int b, bool first);
-  bool check_around_black (int a, int b, bool first);
+  void check_around_white (int a, int b);
+  void check_around_black (int a, int b);
+  bool check (int y, int x);
+  void recount ();
   // void recount ();
   // bool is_on_black_territory (int a, int b);
   // bool is_on_white_territory (int a, int b);
   int get_pass ();
+  void check_num_bl (int i, int j, int group_num);
+  void check_num_w (int i, int j, int group_num);
+  void check_bl_line (int i, int j, int group_num);
+  void check_w_line (int i, int j, int group_num);
 
   void reset_pass_color (int i) { pass_text.set_color(i); }
 
 private:
+  int copy1[9][9];
+  int copy2[9][9];
+  std::vector<int> bl_territory;
+  std::vector<int> w_territory;
+  std::vector<int> territory;
   std::vector<int> nums;
   Graph_lib::Image cal{Point{0, 0}, "rus.png"};
 
