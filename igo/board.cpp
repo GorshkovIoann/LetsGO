@@ -4,6 +4,7 @@
 #include <vector>
 
 using namespace Graph_lib;
+std::vector<int> from_null_to_line;
 
 Cell::Type type_of_cell (int i, int j)
 {
@@ -353,7 +354,8 @@ void Board::check_num_bl(int i, int j, int group_num)
 
 void Board::check_w_line(int i, int j, int group_num)
 {
-  copy2[i][j] = group_num;
+  from_null_to_line.push_back(i * 10 + j);
+  copy2[i][j] = 3;
   if (i - 1 >= 0)
   {
     if (copy2[i - 1][j] == 1)
@@ -458,7 +460,8 @@ void Board::check_w_line(int i, int j, int group_num)
 
 void Board::check_bl_line(int i, int j, int group_num)
 {
-  copy1[i][j] = group_num;
+  from_null_to_line.push_back(i * 10 + j);
+  copy1[i][j] = 4;
   if (i - 1 >= 0)
   {
     if (copy1[i - 1][j] == 2)
@@ -622,6 +625,10 @@ void Board::recount()
         check_bl_line(i, j, bl_num);
         if (territory.size() > 2)
         {
+          for (int x : from_null_to_line)
+          {
+            copy1[x / 10][x % 10] = bl_num;
+          }
           for (int x : territory)
           {
             std::cout << x << std::endl;
@@ -629,6 +636,7 @@ void Board::recount()
               bl_territory.push_back(x);
           }
         }
+        from_null_to_line.clear();
         territory.clear();
         bl_num++;
       }
@@ -665,6 +673,10 @@ void Board::recount()
         check_w_line(i, j, w_num);
         if (territory.size() > 2)
         {
+          for (int x : from_null_to_line)
+          {
+            copy2[x / 10][x % 10] = w_num;
+          }
           for (int x : territory)
           {
             std::cout << x << std::endl;
@@ -672,12 +684,29 @@ void Board::recount()
               w_territory.push_back(x);
           }
         }
+        from_null_to_line.clear();
         territory.clear();
         w_num++;
       }
     }
   }
   // общая проверка
+  std::cout << std::endl;
+  for (int i = 0; i < 9; ++i)
+  {
+    for (int j = 0; j < 9; ++j)
+    {
+      std::cout << copy1[i][j] << std::endl;
+    }
+  }
+  std::cout << std::endl;
+  for (int i = 0; i < 9; ++i)
+  {
+    for (int j = 0; j < 9; ++j)
+    {
+      std::cout << copy2[i][j] << std::endl;
+    }
+  }
   for (int i = 0; i < 9; ++i)
   {
     for (int j = 0; j < 9; ++j)
@@ -715,6 +744,14 @@ void Board::recount()
       if (copy1[i][j] > 99 || copy2[i][j] > 99)
       {
       }
+      else if (copy1[i][j] == 4)
+      {
+        check_along_black(i, j);
+      }
+      else if (copy2[i][j] == 3)
+      {
+        check_along_white(i, j);
+      }
       else
       {
         if (std::count(w_territory.begin(), w_territory.end(),
@@ -740,6 +777,208 @@ void Board::recount()
   std::ostringstream oss2;
   oss2 << "Black score = " << black_count;
   blc.set_label(oss2.str());
+}
+
+bool Board::check_along_black(int i, int j)
+{
+  std::cout << "strt";
+  copy1[i][j] = 2;
+  bool flg = false;
+  if (i - 1 >= 0)
+  {
+    if (copy1[i - 1][j] == 4)
+    {
+      if (check_along_black(i - 1, j))
+      {
+        flg = true;
+      }
+    }
+    std::cout << copy1[i - 1][j] << std::endl;
+    if (copy1[i - 1][j] >= 5 && copy1[i - 1][j] < 100)
+    {
+      std::cout << "!" << std::endl;
+      if (std::count(w_territory.begin(), w_territory.end(),
+                     copy2[i - 1][j]) > 0 &&
+          std::count(bl_territory.begin(), bl_territory.end(),
+                     copy1[i - 1][j]) == 0)
+      {
+        flg = true;
+      }
+    }
+  }
+
+  if (i + 1 <= 9)
+  {
+    if (copy1[i + 1][j] == 4)
+    {
+      if (check_along_black(i + 1, j))
+      {
+        flg = true;
+      }
+    }
+    std::cout << copy1[i + 1][j] << std::endl;
+    if (copy1[i + 1][j] >= 5 && copy1[i + 1][j] < 100)
+    {
+      std::cout << "!" << std::endl;
+      if (std::count(w_territory.begin(), w_territory.end(),
+                     copy2[i + 1][j]) > 0 &&
+          std::count(bl_territory.begin(), bl_territory.end(),
+                     copy1[i + 1][j]) == 0)
+      {
+        flg = true;
+      }
+    }
+  }
+
+  if (j - 1 >= 0)
+  {
+    if (copy1[i][j - 1] == 4)
+    {
+      if (check_along_black(i, j - 1))
+      {
+        flg = true;
+      }
+    }
+    if (copy1[i][j - 1] >= 5 && copy1[i][j - 1] < 100)
+    {
+      std::cout << "!" << std::endl;
+      if (std::count(w_territory.begin(), w_territory.end(),
+                     copy2[i][j - 1]) > 0 &&
+          std::count(bl_territory.begin(), bl_territory.end(),
+                     copy1[i][j - 1]) == 0)
+      {
+        flg = true;
+      }
+    }
+  }
+
+  if (j + 1 <= 9)
+  {
+    if (copy1[i][j + 1] == 4)
+    {
+      if (check_along_black(i, j + 1))
+      {
+        flg = true;
+      }
+    }
+    if (copy1[i][j + 1] >= 5 && copy1[i][j + 1] < 100)
+    {
+      std::cout << "!" << std::endl;
+      if (std::count(w_territory.begin(), w_territory.end(),
+                     copy2[i][j + 1]) > 0 &&
+          std::count(bl_territory.begin(), bl_territory.end(),
+                     copy1[i][j + 1]) == 0)
+      {
+
+        flg = true;
+      }
+    }
+  }
+  if (flg == true)
+  {
+    white_count = white_count + 2;
+  }
+  return flg;
+}
+
+bool Board::check_along_white(int i, int j)
+{
+  copy2[i][j] = 1;
+  bool flg = false;
+  if (i - 1 >= 0)
+  {
+    if (copy2[i - 1][j] == 3)
+    {
+      if (check_along_white(i - 1, j))
+      {
+
+        flg = true;
+      }
+    }
+    if (copy2[i - 1][j] >= 5 && copy2[i - 1][j] < 100)
+    {
+      if (std::count(w_territory.begin(), w_territory.end(),
+                     copy2[i - 1][j]) == 0 &&
+          std::count(bl_territory.begin(), bl_territory.end(),
+                     copy1[i - 1][j]) > 0)
+      {
+
+        flg = true;
+      }
+    }
+  }
+
+  if (i + 1 <= 9)
+  {
+    if (copy2[i + 1][j] == 3)
+    {
+      if (check_along_white(i + 1, j))
+      {
+
+        flg = true;
+      }
+    }
+    if (copy2[i + 1][j] >= 5 && copy2[i + 1][j] < 100)
+    {
+      if (std::count(w_territory.begin(), w_territory.end(),
+                     copy2[i + 1][j]) == 0 &&
+          std::count(bl_territory.begin(), bl_territory.end(),
+                     copy1[i + 1][j]) > 0)
+      {
+
+        flg = true;
+      }
+    }
+  }
+
+  if (j - 1 >= 0)
+  {
+    if (copy2[i][j - 1] == 3)
+    {
+      if (check_along_white(i, j - 1))
+      {
+
+        flg = true;
+      }
+    }
+    if (copy2[i][j - 1] >= 5 && copy2[i][j - 1] < 100)
+    {
+      if (std::count(w_territory.begin(), w_territory.end(),
+                     copy2[i][j - 1]) == 0 &&
+          std::count(bl_territory.begin(), bl_territory.end(),
+                     copy1[i][j - 1]) > 0)
+      {
+        flg = true;
+      }
+    }
+  }
+
+  if (j + 1 <= 9)
+  {
+    if (copy2[i][j + 1] == 3)
+    {
+      if (check_along_white(i, j + 1))
+      {
+        flg = true;
+      }
+    }
+    if (copy2[i][j + 1] >= 5 && copy2[i][j + 1] < 100)
+    {
+      if (std::count(w_territory.begin(), w_territory.end(),
+                     copy2[i][j + 1]) == 0 &&
+          std::count(bl_territory.begin(), bl_territory.end(),
+                     copy1[i][j + 1]) > 0)
+      {
+
+        flg = true;
+      }
+    }
+  }
+  if (flg == true)
+  {
+    black_count = black_count + 2;
+  }
+  return flg;
 }
 
 Cell& Board::at(int i, int c)  // строка и столбец

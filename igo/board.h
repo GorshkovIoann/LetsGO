@@ -43,6 +43,8 @@ struct Board : Graph_lib::Widget
   void check_num_w (int i, int j, int group_num);
   void check_bl_line (int i, int j, int group_num);
   void check_w_line (int i, int j, int group_num);
+  bool check_along_black (int i, int j);
+  bool check_along_white (int i, int j);
 
   void reset_pass_color (int i) { pass_text.set_color(i); }
 
