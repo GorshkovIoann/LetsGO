@@ -446,7 +446,7 @@ void Board::check_w_line(int i, int j, int group_num)
   }
   if (j + 1 < 9 && i - 1 >= 0)
   {
-    if (copy2[i + 1][j] == 1)
+    if (copy2[i - 1][j + 1] == 1)
     {
       check_w_line(i - 1, j + 1, group_num);
     }
@@ -552,7 +552,7 @@ void Board::check_bl_line(int i, int j, int group_num)
   }
   if (j + 1 < 9 && i - 1 >= 0)
   {
-    if (copy1[i + 1][j] == 2)
+    if (copy1[i - 1][j + 1] == 2)
     {
       check_bl_line(i - 1, j + 1, group_num);
     }
@@ -623,7 +623,8 @@ void Board::recount()
       if (copy1[i][j] == 2)
       {
         check_bl_line(i, j, bl_num);
-        if (territory.size() > 2)
+        if (territory.size() > 2 &&
+            std::count(territory.begin(), territory.end(), 2) == 0)
         {
           for (int x : from_null_to_line)
           {
@@ -632,7 +633,7 @@ void Board::recount()
           for (int x : territory)
           {
             std::cout << x << std::endl;
-            if (x < 100)
+            if (x != 4)
               bl_territory.push_back(x);
           }
         }
@@ -671,7 +672,8 @@ void Board::recount()
       if (copy2[i][j] == 1)
       {
         check_w_line(i, j, w_num);
-        if (territory.size() > 2)
+        if (territory.size() > 2 &&
+            std::count(territory.begin(), territory.end(), 1) == 0)
         {
           for (int x : from_null_to_line)
           {
@@ -680,7 +682,7 @@ void Board::recount()
           for (int x : territory)
           {
             std::cout << x << std::endl;
-            if (x < 100)
+            if (x != 3)
               w_territory.push_back(x);
           }
         }
@@ -752,7 +754,7 @@ void Board::recount()
       {
         check_along_white(i, j);
       }
-      else
+      else if (copy2[i][j] != 1 && copy1[i][j] != 2)
       {
         if (std::count(w_territory.begin(), w_territory.end(),
                        copy2[i][j]) > 0 &&
